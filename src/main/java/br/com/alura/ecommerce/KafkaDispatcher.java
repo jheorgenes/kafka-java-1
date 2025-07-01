@@ -10,22 +10,22 @@ import java.io.Closeable;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
-class KafkaDispatcher implements Closeable {
-    private final KafkaProducer<String, String> producer;
+class KafkaDispatcher<T> implements Closeable {
+    private final KafkaProducer<String, T> producer;
 
     KafkaDispatcher() {
         this.producer = new KafkaProducer<>(properties());
     }
 
     private static Properties properties() {
-        var properties =new Properties();
+        var properties = new Properties();
         properties.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,"127.0.0.1:9092"); //Define aonde está o kafka rodando
         properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName()); //Definindo a serialização da (chave) para String [transformando em byte]
-        properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName()); //Definindo a serialização do (valor) para String
+        properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, GsonSerializer.class.getName());
         return properties;
     }
 
-    void send(String topic, String key, String value) throws ExecutionException, InterruptedException {
+    void send(String topic, String key, T value) throws ExecutionException, InterruptedException {
         /* Criando um registro (record) */
         var record = new ProducerRecord<>(topic, key, value);
 

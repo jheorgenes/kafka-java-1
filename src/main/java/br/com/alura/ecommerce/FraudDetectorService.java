@@ -1,22 +1,24 @@
 package br.com.alura.ecommerce;
 
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
-import java.util.Properties;
+import java.util.HashMap;
+import java.util.Map;
 
 public class FraudDetectorService {
     public static void main(String[] args) {
         var fraudService = new FraudDetectorService();
-        try(var service = new KafkaService(
-                EmailService.class.getSimpleName(),
+        try(var service = new KafkaService<>(
+                FraudDetectorService.class.getSimpleName(),
                 "ECOMMERCE_NEW_ORDER",
-                fraudService::parse)){
+                fraudService::parse,
+                Order.class,
+                Map.of())) {
             service.run();
         }
     }
 
-    private void parse(ConsumerRecord<String, String> record) {
+    private void parse(ConsumerRecord<String, Order> record) {
         System.out.println("__________________________________________");
         System.out.println("Processando new order, checking for fraud");
         System.out.println(record.key());
@@ -29,12 +31,5 @@ public class FraudDetectorService {
             e.printStackTrace();
         }
         System.out.println("Order processed");
-    }
-
-
-    private static Properties properties() {
-        var properties =new Properties();
-        properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, FraudDetectorService.class.getSimpleName());
-        return properties;
     }
 }
